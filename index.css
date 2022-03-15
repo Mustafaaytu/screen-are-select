@@ -1,0 +1,54 @@
+
+
+  .my-ss-container{
+    opacity: 1;
+    width: 1000px;
+  }
+
+
+  .edit-rectangle {
+     fill-opacity: 0;
+     stroke: rgb(58, 33, 206);
+
+  }
+
+  .del-background {
+    fill: rgb(58, 33, 206);
+    fill-opacity: 1;
+  }
+
+  .del-icon {
+    background-image: url('icon/remove.svg');
+    background-position: center;
+    background-repeat: no-repeat;
+    background-size: contain;
+    display: inline-block;
+    height: 20px;
+    width: 20px;
+    color: white;
+  }
+
+  .del-button {
+    margin: 0px;
+    padding: 0px;
+    width: 10px;
+    height: 10px;
+    position: fixed;
+    border-radius: 0.125rem;
+    border: 1px solid rgb(58, 33, 206);
+    background-color: rgb(58, 33, 206);
+    cursor: pointer;
+    outline: none;
+    position: fixed;
+  }
+
+  body{
+    background: url("https://www.lakelgateway.org/wp-content/uploads/2018/09/3D-Beach-Backgrounds-HD-Download-desktop-wallpapers-amazing-background-photos-download-free-best-apple-picture-2560x1440-1024x576.jpg") no-repeat center center fixed; 
+    -webkit-background-size: cover;
+    -moz-background-size: cover;
+    -o-background-size: cover;
+    background-size: cover;
+  }
+
+  svg{
+  }
