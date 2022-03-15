@@ -1,7 +1,3 @@
-
-
-
-
 //svg ********************************************************************
 var svgCanvas = document.querySelector("svg");
 var svgNS = "http://www.w3.org/2000/svg";
@@ -58,11 +54,11 @@ function Rectangle(x, y, w, h, svgCanvas) {
   this.stroke = 5;
   this.el = document.createElementNS(svgNS, "rect");
   this.el.setAttribute("data-index", rectangles.length);
+  this.el.setAttribute("id", "rect-id-" + rectangles.length);
   this.el.setAttribute("class", "edit-rectangle highlight");
   rectangles.push(this);
   
-  //let group = document.createElementNS(svgNS, "g");
-  //svgCanvas.appendChild(this.el);
+  svgCanvas.appendChild(this.el);
 }
 
 Rectangle.prototype.draw = function() {
@@ -74,67 +70,27 @@ Rectangle.prototype.draw = function() {
   updateSvgBgPath(this.el);
 };
 
-
-function showEventInfo (event) {
-  console.log("burdayım");
-  console.log(event);
-  const actionInfo = JSON.stringify(event.interaction.prepared, null, 2);
-}
-
-
 //************************* draw*************************
 const interactSvgCanvas = interact('.my-ss-container');
- /* 
-interactSvgCanvas.draggable({
-  listeners: {
-    start (event) {
-      let newRect   = new Rectangle(event.pageX, event.pageY, 50, 50, svgCanvas);
-      let group     = document.createElementNS(svgNS, "g");
-      group.setAttribute("id", `group-${rectangles.length}`);
 
-      group.appendChild(newRect.el);
-      svgCanvas.appendChild(group);
-
-      //console.log(newRect);
-    },
-    move: targetMoving,
-    onend: showEventInfo,
-  }
-})*/
 
 function endMoving(event) {
   rect = rectangles[rectangles.length-1];
-  console.log(rect);
-  //let delRect = document.createElementNS(svgNS, "rect");
   let delButton = document.createElement("button");
   delButton.setAttribute("class", "del-select del-icon del-button");
-  delButton.setAttribute("id", `del-button-${rectangles.length}`);
+  delButton.setAttribute("id", `del-button-${rectangles.length-1}`);
   delButton.setAttribute("x", rect.x + rect.w);
   delButton.setAttribute("y", rect.y);
-  delButton.setAttribute("rect-id", rectangles.length);
-  delButton.style.left = parseFloat(rect.x + rect.w + 6).toString() + "px";
-  delButton.style.top  = parseFloat(rect.y + 8).toString() + "px";
+  delButton.setAttribute("rect-id", rectangles.length - 1);
+  delButton.style.left = parseFloat(rect.x + rect.w).toString() + "px";
+  delButton.style.top  = parseFloat(rect.y).toString() + "px";
   delButton.onclick = deleteRect;
-
-  //delRect.setAttribute("class", "del-background del-icon");
-  //delRect.setAttribute("id", `del-rect-${rectangles.length}`);
-  //delRect.setAttribute("x", rect.x + rect.w);
-  //delRect.setAttribute("y", (rect.y).toString());
-  //delRect.setAttribute("width", 20);
-  //delRect.setAttribute("height", 20);
-  //delRect.setAttribute("stroke-width", 5);
-
   document.querySelector(`.my-ss-container`).appendChild(delButton);
 }
 
 interactSvgCanvas.draggable({
   onstart: function (event) {
-    let newRect   = new Rectangle(event.pageX, event.pageY, 50, 50, svgCanvas);
-    let group     = document.createElementNS(svgNS, "g");
-    group.setAttribute("id", `group-${rectangles.length}`);
-
-    group.appendChild(newRect.el);
-    svgCanvas.appendChild(group);
+    new Rectangle(event.pageX, event.pageY, 50, 50, svgCanvas);
   },
   onmove : targetMoving,
   onend  : endMoving,
@@ -221,27 +177,46 @@ function setPathWithIndex(d, index, newPath) {
     return pathArray.join("\n");
 }
 
-
 function removePathWithIndex(d, index) {
   let pathArray = d.split("\n");
-  pathArray.splice(parseInt(index), 1);
+  pathArray.splice(parseInt(index)+1, 1);
   
   return pathArray.join("\n");
 }
 
 function setRenctangelDelButton(rectangle, index) {
-  delButton = document.getElementById(`del-button-${(parseInt(index) + 1)}`);
-  delButton.style.left = parseFloat(rectangle.x + rectangle.w + 6).toString() + "px";
-  delButton.style.top  = parseFloat(rectangle.y + 8).toString() + "px"; 
+  delButton = document.getElementById(`del-button-${(parseInt(index) )}`);
+
+  if(rectangle.x + rectangle.w + 24 >= svgCanvas.width.baseVal["valueInSpecifiedUnits"]){
+    delButton.style.left = parseFloat(rectangle.x - 20).toString() + "px";
+    delButton.style.top  = parseFloat(rectangle.y).toString() + "px"; 
+  }else {
+    delButton.style.left = parseFloat(rectangle.x + rectangle.w).toString() + "px";
+    delButton.style.top  = parseFloat(rectangle.y).toString() + "px"; 
+  }
+
+  console.log(rectangle.x + rectangle.w);
 }
 
 function deleteRect() {
-  rectangles.splice(this.getAttribute("rect-id")-1, 1);
-  let rect    =  rectangles[this.getAttribute("rect-id")-1];
-  let group   = document.getElementById(`group-${this.getAttribute("rect-id")}`);
+  let deletedButtonIndex = parseInt(this.getAttribute("rect-id"));
   var d       = myShadowBackground.getAttribute("d");
   let editedD = removePathWithIndex(d, this.getAttribute("rect-id"));
   myShadowBackground.setAttribute("d", editedD);
-  group.remove();
+  
+  rectangles.splice(this.getAttribute("rect-id"), 1);
+
+  document.getElementById(`rect-id-${deletedButtonIndex}`).remove();
+
   this.remove();
+  
+  document.querySelectorAll("rect").forEach(function(rect, index) {
+    if( rect.getAttribute("data-index") > deletedButtonIndex  ) {
+      rect.setAttribute("data-index", (parseInt(rect.getAttribute("data-index")) - 1).toString());
+      rect.setAttribute("id", ("rect-id-"+  parseInt(rect.getAttribute("data-index"))  ));
+      let butonumuz = document.getElementById(`del-button-${parseInt(rect.getAttribute("data-index"))+1}`);
+      butonumuz.setAttribute("rect-id", parseInt(rect.getAttribute("data-index")));
+      butonumuz.setAttribute("id", `del-button-${parseInt(rect.getAttribute("data-index"))}`);
+    }
+  })
 }
