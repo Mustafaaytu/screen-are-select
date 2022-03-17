@@ -1,22 +1,21 @@
 //svg ********************************************************************
+var myShadowBackground = document.querySelector("#my-shadow-background");
 var svgCanvas = document.querySelector("svg");
 var svgNS = "http://www.w3.org/2000/svg";
+var bodyWidth  = document.body.clientWidth;
+var bodyHeight = document.body.clientHeight;
 var rectangles = [];
-var myShadowBackground = document.querySelector("#my-shadow-background");
 
 
 var onresize = function() {
-  width = document.body.clientWidth;
-  height = document.body.clientHeight;
-
   //resize default svg
-  svgCanvas.setAttribute("width", width);
-  svgCanvas.setAttribute("height", height);
-  svgCanvas.setAttribute("viewBox", "0 0 " + width + " " + height);
+  svgCanvas.setAttribute("width", bodyWidth);
+  svgCanvas.setAttribute("height", bodyHeight);
+  svgCanvas.setAttribute("viewBox", "0 0 " + bodyWidth + " " + bodyHeight);
   
-  var d = myShadowBackground.getAttribute("d");
-  var pathArray = d.split("\n");
-  var newbgArea = `M0 0 h${width} v${height} h-${width} Z`;
+  let d = myShadowBackground.getAttribute("d");
+  let pathArray = d.split("\n");
+  let newbgArea = `M0 0 h${bodyWidth} v${bodyHeight} h-${bodyWidth} Z`;
 
   pathArray[0] = newbgArea;
   d = pathArray.join("\n");
@@ -29,21 +28,7 @@ window.addEventListener("resize", onresize);
 // Run function on load, could also run on dom ready
 // We will adjust the size of the rectangels in the svg.
 window.onload = function() {
-  width = document.body.clientWidth;
-  height = document.body.clientHeight;
-
-  svgCanvas.setAttribute("width", width);
-  svgCanvas.setAttribute("height", height);
-  svgCanvas.setAttribute("viewBox", "0 0 " + width + " " + height);
-  
-  // Then we changed the size of bg path inside for path of inside in svg.
-  var d = myShadowBackground.getAttribute("d");
-  var pathArray = d.split("\n");
-  var newbgArea = `M0 0 h${width} v${height} h-${width} Z`;
-  // We will change first index
-  pathArray[0] = newbgArea;
-  d = pathArray.join("\n");
-  myShadowBackground.setAttribute("d", d);
+  onresize();
 }
 
 function Rectangle(x, y, w, h, svgCanvas) {
@@ -70,23 +55,15 @@ Rectangle.prototype.draw = function() {
   updateSvgBgPath(this.el);
 };
 
-//************************* draw*************************
-const interactSvgCanvas = interact('.my-ss-container');
-
+//************************* draw *************************
 
 function endMoving(event) {
   rect = rectangles[rectangles.length-1];
-  let delButton = document.createElement("button");
-  delButton.setAttribute("class", "del-select del-icon del-button");
-  delButton.setAttribute("id", `del-button-${rectangles.length-1}`);
-  delButton.setAttribute("x", rect.x + rect.w);
-  delButton.setAttribute("y", rect.y);
-  delButton.setAttribute("rect-id", rectangles.length - 1);
-  delButton.style.left = parseFloat(rect.x + rect.w).toString() + "px";
-  delButton.style.top  = parseFloat(rect.y).toString() + "px";
-  delButton.onclick = deleteRect;
+  let delButton = createDelButton(rect, rectangles.length-1);
   document.querySelector(`.my-ss-container`).appendChild(delButton);
 }
+
+const interactSvgCanvas = interact('.my-ss-container');
 
 interactSvgCanvas.draggable({
   onstart: function (event) {
@@ -102,34 +79,34 @@ function targetMoving (event) {
  if(event.rect.left <= 0 && event.rect.top > 0) {
    //console.log("coordinate left down");
    let horizontalLength = rectangle.w + (rectangle.x - event.pageX);// event.rect.left - rectangle.x;
-   rectangle.x = event.pageX < 5 ? 5 : event.pageX;
-   rectangle.w = horizontalLength < 5 ? 5 : horizontalLength;
+   rectangle.x = event.pageX < rectangle.stroke ? rectangle.stroke : event.pageX;
+   rectangle.w = horizontalLength < rectangle.stroke ? rectangle.stroke : horizontalLength;
 
    //rectangle.y =  event.pageY < 5 ? 5 : event.pageY;
-   rectangle.h = event.pageY < 5 ? 5 : event.pageY- rectangle.y;
+   rectangle.h = event.pageY < rectangle.stroke ? rectangle.stroke : event.pageY- rectangle.y;
  }
  else if(event.rect.left <= 0 && event.rect.top <= 0) {
    //console.log("coordinate left up");
 
    let horizontalLength = rectangle.w + (rectangle.x - event.pageX);// event.rect.left - rectangle.x;
-   rectangle.x = event.pageX < 5 ? 5 : event.pageX;
-   rectangle.w = horizontalLength < 5 ? 5 : horizontalLength;
+   rectangle.x = event.pageX < rectangle.stroke ? rectangle.stroke : event.pageX;
+   rectangle.w = horizontalLength < rectangle.stroke ? rectangle.stroke : horizontalLength;
 
    let verticalLength = rectangle.h + (rectangle.y - event.pageY);
-   rectangle.y = event.pageY < 5 ? 5 : event.pageY;
-   rectangle.h = verticalLength < 5 ? 5 : verticalLength;
+   rectangle.y = event.pageY < rectangle.stroke ? rectangle.stroke : event.pageY;
+   rectangle.h = verticalLength < rectangle.stroke ? rectangle.stroke : verticalLength;
    
  }else if(event.rect.left > 0 && event.rect.top > 0) {
    //console.log("coordinate right down");
-   rectangle.w = (event.pageX - rectangle.x) < 5 ? 10 : (event.pageX - rectangle.x);
-   rectangle.h = (event.pageY - rectangle.y) < 5 ? 10 : (event.pageY - rectangle.y);
+   rectangle.w = (event.pageX - rectangle.x) < rectangle.stroke ? rectangle.stroke * 2 : (event.pageX - rectangle.x);
+   rectangle.h = (event.pageY - rectangle.y) < rectangle.stroke ? rectangle.stroke * 2 : (event.pageY - rectangle.y);
  }else {
    //console.log("coordinate right up");
    let verticalLength = rectangle.h + (rectangle.y - event.pageY);
-   rectangle.y = event.pageY < 5 ? 5 : event.pageY;
-   rectangle.h = verticalLength < 5 ? 5 : verticalLength;
+   rectangle.y = event.pageY < rectangle.stroke ? rectangle.stroke : event.pageY;
+   rectangle.h = verticalLength < rectangle.stroke ? rectangle.stroke : verticalLength;
 
-   rectangle.w = (event.pageX - rectangle.x) < 5 ? 10 : (event.pageX - rectangle.x);
+   rectangle.w = (event.pageX - rectangle.x) < rectangle.stroke ? rectangle.stroke : (event.pageX - rectangle.x);
  }
  rectangle.draw();
 }
@@ -156,7 +133,7 @@ interact(".edit-rectangle")
         var rectangle = rectangles[event.target.getAttribute("data-index")];
         rectangle.x = event.rect.left;
         rectangle.y = event.rect.top;
-        setRenctangelDelButton(rectangle, event.target.getAttribute("data-index"));
+        setRectDelButtonPossition(rectangle, event.target.getAttribute("data-index"));
         rectangle.draw();
       }
     },
@@ -173,12 +150,12 @@ interact(".edit-rectangle")
     edges: { left: true, top: true, right: true, bottom: true },
     listeners: {
       move(event) {
-        var rectangle = rectangles[event.target.getAttribute("data-index")];
+        let rectangle = rectangles[event.target.getAttribute("data-index")];
         rectangle.w = event.rect.width;
         rectangle.h = event.rect.height;
         rectangle.x = event.rect.left;
         rectangle.y = event.rect.top;
-        setRenctangelDelButton(rectangle, event.target.getAttribute("data-index"));
+        setRectDelButtonPossition(rectangle, event.target.getAttribute("data-index"));
         rectangle.draw();
       }
     },
@@ -191,10 +168,10 @@ interact(".edit-rectangle")
 interact.maxInteractions(Infinity);
 
 function updateSvgBgPath(rect) {
-  var dataIndex = rect.getAttribute("data-index");
-  var d = myShadowBackground.getAttribute("d");
-  var newRectPath = `M${rect.getAttribute("x")} ${rect.getAttribute("y")} h${rect.getAttribute("width")} v${rect.getAttribute("height")} h-${rect.getAttribute("width")} Z`;
-  var newD = setPathWithIndex(d, dataIndex, newRectPath);
+  let dataIndex   = rect.getAttribute("data-index");
+  let d           = myShadowBackground.getAttribute("d");
+  let newRectPath = `M${rect.getAttribute("x")} ${rect.getAttribute("y")} h${rect.getAttribute("width")} v${rect.getAttribute("height")} h-${rect.getAttribute("width")} Z`;
+  let newD        = setPathWithIndex(d, dataIndex, newRectPath);
 
   myShadowBackground.setAttribute("d", newD);
 }
@@ -212,23 +189,40 @@ function removePathWithIndex(d, index) {
   return pathArray.join("\n");
 }
 
-function setRenctangelDelButton(rectangle, index) {
+function createDelButton(rect, index) {
+  let delButton = document.createElement("button");
+  delButton.setAttribute("class", "del-select del-icon del-button");
+  delButton.setAttribute("id", `del-button-${index}`);
+  delButton.setAttribute("x", rect.x + rect.w);
+  delButton.setAttribute("y", rect.y);
+  delButton.setAttribute("rect-id", index);
+  delButton.onclick = deleteRect;
+  if(rect.x + rect.w + rect.stroke * 5 >= svgCanvas.width.baseVal["valueInSpecifiedUnits"]) {
+    delButton.style.left = parseFloat(rect.x - rect.stroke * 4).toString() + "px";
+    delButton.style.top  = parseFloat(rect.y).toString() + "px"; 
+  }else {
+    delButton.style.left = parseFloat(rect.x + rect.w).toString() + "px";
+    delButton.style.top  = parseFloat(rect.y).toString() + "px"; 
+  }
+
+  return delButton;
+}
+
+function setRectDelButtonPossition(rectangle, index) {
   delButton = document.getElementById(`del-button-${(parseInt(index) )}`);
 
-  if(rectangle.x + rectangle.w + 24 >= svgCanvas.width.baseVal["valueInSpecifiedUnits"]){
-    delButton.style.left = parseFloat(rectangle.x - 20).toString() + "px";
+  if(rectangle.x + rectangle.w + rectangle.stroke * 5 >= svgCanvas.width.baseVal["valueInSpecifiedUnits"]){
+    delButton.style.left = parseFloat(rectangle.x - rectangle.stroke * 4).toString() + "px";
     delButton.style.top  = parseFloat(rectangle.y).toString() + "px"; 
   }else {
     delButton.style.left = parseFloat(rectangle.x + rectangle.w).toString() + "px";
     delButton.style.top  = parseFloat(rectangle.y).toString() + "px"; 
   }
-
-  console.log(rectangle.x + rectangle.w);
 }
 
 function deleteRect() {
   let deletedButtonIndex = parseInt(this.getAttribute("rect-id"));
-  var d       = myShadowBackground.getAttribute("d");
+  let d       = myShadowBackground.getAttribute("d");
   let editedD = removePathWithIndex(d, this.getAttribute("rect-id"));
   myShadowBackground.setAttribute("d", editedD);
   
@@ -239,12 +233,13 @@ function deleteRect() {
   this.remove();
   
   document.querySelectorAll("rect").forEach(function(rect, index) {
-    if( rect.getAttribute("data-index") > deletedButtonIndex  ) {
-      rect.setAttribute("data-index", (parseInt(rect.getAttribute("data-index")) - 1).toString());
-      rect.setAttribute("id", ("rect-id-"+  parseInt(rect.getAttribute("data-index"))  ));
-      let delButton = document.getElementById(`del-button-${parseInt(rect.getAttribute("data-index"))+1}`);
-      delButton.setAttribute("rect-id", parseInt(rect.getAttribute("data-index")));
-      delButton.setAttribute("id", `del-button-${parseInt(rect.getAttribute("data-index"))}`);
+    let rectIndex = rect.getAttribute("data-index");
+    if( rectIndex > deletedButtonIndex ) {
+      rect.setAttribute("data-index", (parseInt(rectIndex) - 1).toString());
+      rect.setAttribute("id", ("rect-id-"+  parseInt(rectIndex)));
+      let delButton = document.getElementById(`del-button-${parseInt(rectIndex)+1}`);
+      delButton.setAttribute("rect-id", parseInt(rectIndex));
+      delButton.setAttribute("id", `del-button-${parseInt(rectIndex)}`);
     }
   })
 }
