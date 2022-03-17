@@ -65,7 +65,7 @@ Rectangle.prototype.draw = function() {
   this.el.setAttribute("x", this.x + this.stroke / 2);
   this.el.setAttribute("y", this.y + this.stroke / 2);
   this.el.setAttribute("width", this.w - this.stroke);
-  this.el.setAttribute("height", this.h - this.stroke);
+  this.el.setAttribute("height", Math.abs( this.h - this.stroke) );
   this.el.setAttribute("stroke-width", this.stroke);
   updateSvgBgPath(this.el);
 };
@@ -97,12 +97,41 @@ interactSvgCanvas.draggable({
 })
 
 function targetMoving (event) {
-  var rectangle = rectangles[rectangles.length-1];
-  rectangle.w = (event.pageX - rectangle.x) < 5 ? 10 : (event.pageX - rectangle.x);
-  rectangle.h = (event.pageY - rectangle.y) < 5 ? 10 : (event.pageY - rectangle.y);
-  console.log("moving");
-  rectangle.draw();
+ var rectangle = rectangles[rectangles.length-1];
 
+ if(event.rect.left <= 0 && event.rect.top > 0) {
+   //console.log("coordinate left down");
+   let horizontalLength = rectangle.w + (rectangle.x - event.pageX);// event.rect.left - rectangle.x;
+   rectangle.x = event.pageX < 5 ? 5 : event.pageX;
+   rectangle.w = horizontalLength < 5 ? 5 : horizontalLength;
+
+   //rectangle.y =  event.pageY < 5 ? 5 : event.pageY;
+   rectangle.h = event.pageY < 5 ? 5 : event.pageY- rectangle.y;
+ }
+ else if(event.rect.left <= 0 && event.rect.top <= 0) {
+   //console.log("coordinate left up");
+
+   let horizontalLength = rectangle.w + (rectangle.x - event.pageX);// event.rect.left - rectangle.x;
+   rectangle.x = event.pageX < 5 ? 5 : event.pageX;
+   rectangle.w = horizontalLength < 5 ? 5 : horizontalLength;
+
+   let verticalLength = rectangle.h + (rectangle.y - event.pageY);
+   rectangle.y = event.pageY < 5 ? 5 : event.pageY;
+   rectangle.h = verticalLength < 5 ? 5 : verticalLength;
+   
+ }else if(event.rect.left > 0 && event.rect.top > 0) {
+   //console.log("coordinate right down");
+   rectangle.w = (event.pageX - rectangle.x) < 5 ? 10 : (event.pageX - rectangle.x);
+   rectangle.h = (event.pageY - rectangle.y) < 5 ? 10 : (event.pageY - rectangle.y);
+ }else {
+   //console.log("coordinate right up");
+   let verticalLength = rectangle.h + (rectangle.y - event.pageY);
+   rectangle.y = event.pageY < 5 ? 5 : event.pageY;
+   rectangle.h = verticalLength < 5 ? 5 : verticalLength;
+
+   rectangle.w = (event.pageX - rectangle.x) < 5 ? 10 : (event.pageX - rectangle.x);
+ }
+ rectangle.draw();
 }
 
 
@@ -129,7 +158,6 @@ interact(".edit-rectangle")
         rectangle.y = event.rect.top;
         setRenctangelDelButton(rectangle, event.target.getAttribute("data-index"));
         rectangle.draw();
-
       }
     },
     modifiers: [
@@ -214,9 +242,9 @@ function deleteRect() {
     if( rect.getAttribute("data-index") > deletedButtonIndex  ) {
       rect.setAttribute("data-index", (parseInt(rect.getAttribute("data-index")) - 1).toString());
       rect.setAttribute("id", ("rect-id-"+  parseInt(rect.getAttribute("data-index"))  ));
-      let butonumuz = document.getElementById(`del-button-${parseInt(rect.getAttribute("data-index"))+1}`);
-      butonumuz.setAttribute("rect-id", parseInt(rect.getAttribute("data-index")));
-      butonumuz.setAttribute("id", `del-button-${parseInt(rect.getAttribute("data-index"))}`);
+      let delButton = document.getElementById(`del-button-${parseInt(rect.getAttribute("data-index"))+1}`);
+      delButton.setAttribute("rect-id", parseInt(rect.getAttribute("data-index")));
+      delButton.setAttribute("id", `del-button-${parseInt(rect.getAttribute("data-index"))}`);
     }
   })
 }
